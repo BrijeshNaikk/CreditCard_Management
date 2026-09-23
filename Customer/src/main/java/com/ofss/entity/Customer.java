@@ -5,6 +5,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.SequenceGenerator;
 import jakarta.persistence.Table;
 
 @Entity
@@ -12,7 +13,12 @@ import jakarta.persistence.Table;
 public class Customer {
 	
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE)
+	@SequenceGenerator(
+	        name = "customer_seq",
+	        sequenceName = "CUSTOMER_SEQ",
+	        allocationSize = 1
+	    )
 	@Column(name = "customer_id")
 	private Long customerId;
 	
