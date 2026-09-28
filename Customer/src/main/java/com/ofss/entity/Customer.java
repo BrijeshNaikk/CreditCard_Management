@@ -11,49 +11,47 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "customers")
 public class Customer {
-	
+
 	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE)
-	@SequenceGenerator(
-	        name = "customer_seq",
-	        sequenceName = "CUSTOMER_SEQ",
-	        allocationSize = 1
-	    )
 	@Column(name = "customer_id")
 	private Long customerId;
-	
-	
+
 	@Column(name = "customer_name", nullable = false, length = 100)
 	private String customerName;
-	
+
 	@Column(name = "email", nullable = false, unique = true, length = 150)
 	private String email;
-	
+
 	@Column(name = "mobile_number", nullable = false, length = 10)
 	private String mobileNumber;
-	
+
 	@Column(name = "pan_number", nullable = false, unique = true, length = 10)
 	private String panNumber;
+
 
 	public Customer() {
 		super();
 		// TODO Auto-generated constructor stub
 	}
 
-	public Customer(Long customerId, String customerName, String email, String mobileNumber, String panNumber) {
-		super();
+	public Customer(Long customerId, String customerName, String email, String mobileNumber, String panNumber,
+			Long userId) {
+
 		this.customerId = customerId;
 		this.customerName = customerName;
 		this.email = email;
 		this.mobileNumber = mobileNumber;
 		this.panNumber = panNumber;
+		
 	}
-	
-	public Customer(String customerName, String email, String mobileNumber, String panNumber) {
+
+	public Customer(String customerName, String email, String mobileNumber, String panNumber, Long userId) {
+
 		this.customerName = customerName;
 		this.email = email;
 		this.mobileNumber = mobileNumber;
 		this.panNumber = panNumber;
+		
 	}
 
 	public Long getCustomerId() {

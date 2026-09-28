@@ -1,30 +1,48 @@
 package com.ofss.exceptions;
 
-import java.time.OffsetDateTime;
 import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 import org.springframework.http.HttpStatus;
 
 public record ApiError(
-		HttpStatus status,
-		String message,
-		OffsetDateTime timeStamp,
-		List<ApiFieldError> errors
-		) {
-	
-	private static final ZoneId IST = ZoneId.of("Asia/Kolkata");
-	
-	public ApiError(HttpStatus status, String message) {
-		this(status, message, OffsetDateTime.now(IST), null);
-	}
-	
-	public ApiError(
-			HttpStatus status,
-			String message,
-			List<ApiFieldError> errors
-			) {
-		this(status, message, OffsetDateTime.now(IST), errors);
-	}
 
+        HttpStatus status,
+
+        String message,
+
+        String timeStamp,
+
+        List<ApiFieldError> errors
+) {
+
+    private static final ZoneId IST_ZONE =
+            ZoneId.of("Asia/Kolkata");
+
+    private static final DateTimeFormatter IST_FORMAT =
+            DateTimeFormatter.ofPattern(
+                    "dd-MM-yyyy hh:mm:ss a 'IST'"
+            );
+
+    public ApiError(
+            HttpStatus status,
+            String message
+    ) {
+        this(status, message, null);
+    }
+
+    public ApiError(
+            HttpStatus status,
+            String message,
+            List<ApiFieldError> errors
+    ) {
+        this(
+                status,
+                message,
+                ZonedDateTime.now(IST_ZONE).format(IST_FORMAT),
+                errors
+        );
+    }
 }

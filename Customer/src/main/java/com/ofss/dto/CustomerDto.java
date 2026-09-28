@@ -5,7 +5,9 @@ import com.ofss.validation.Patch;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import jakarta.validation.groups.Default;
 
@@ -13,7 +15,14 @@ public record CustomerDto(
 
     @JsonProperty(access = JsonProperty.Access.READ_ONLY)
     Long customerId,
-
+    
+    
+    @NotNull(message = "User ID is required")
+    @Positive(message = "User ID must be greater than zero")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    Long userId,
+    
+    
     @NotBlank(
         message = "Customer name is required",
         groups = Default.class

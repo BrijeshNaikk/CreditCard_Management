@@ -3,8 +3,12 @@ package com.ofss.serviceImpl;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.ofss.client.SecurityServiceClient;
+import com.ofss.client.SecurityUserResponse;
 import com.ofss.dto.CustomerDto;
 import com.ofss.entity.Customer;
 import com.ofss.exceptions.BadRequestException;
@@ -21,18 +25,59 @@ public class CustomerServiceImpl implements CustomerService{
 	@Autowired
 	private CustomerRepository customerRepository;
 	
+	private final SecurityServiceClient securityServiceClient;
+	
+	public CustomerServiceImpl(
+	        CustomerRepository customerRepository,
+	        SecurityServiceClient securityServiceClient
+	) {
+	    this.customerRepository = customerRepository;
+	    this.securityServiceClient = securityServiceClient;
+	}
+	
 	@Override
-	public CustomerDto createCustomer(CustomerDto request) {
-		Customer customer = new Customer();
-		
-		customer.setCustomerName(request.customerName());
-		customer.setEmail(request.email());
-		customer.setMobileNumber(request.mobileNumber());
-		customer.setPanNumber(request.panNumber());
-		
-		Customer savedCustomer = customerRepository.save(customer);
-		
-		return toDto(savedCustomer);
+	public CustomerDto createCustomer(
+	        CustomerDto request,
+	        String authorizationHeader
+	) {
+
+	    SecurityUserResponse securityUser =
+	            securityServiceClient.getUserById(
+	                    request.userId(),
+	                    authorizationHeader
+	            );
+
+	    if (!securityUser.enabled()) {
+	        throw new BadRequestException(
+	                "User with ID " + request.userId()
+	                        + " is disabled"
+	        );
+	    }
+
+	    if (!"USER".equals(securityUser.role())) {
+	        throw new BadRequestException(
+	                "A customer profile can be created only for a USER role account"
+	        );
+	    }
+
+	    if (customerRepository.existsById(request.userId())) {
+	        throw new BadRequestException(
+	                "A customer profile already exists for user ID "
+	                        + request.userId()
+	        );
+	    }
+
+	    Customer customer = new Customer();
+
+	    customer.setCustomerId(request.userId());
+	    customer.setCustomerName(request.customerName());
+	    customer.setEmail(request.email());
+	    customer.setMobileNumber(request.mobileNumber());
+	    customer.setPanNumber(request.panNumber());
+
+	    Customer savedCustomer = customerRepository.save(customer);
+
+	    return toDto(savedCustomer);
 	}
 
 	@Override
@@ -53,7 +98,7 @@ public class CustomerServiceImpl implements CustomerService{
 	public CustomerDto updateCustomer(CustomerDto request, Long customerId) {
 		
 		Customer customer = findCustomerById(customerId);
-		
+		customer.setCustomerId(request.userId());
 		customer.setCustomerName(request.customerName());
 		customer.setEmail(request.email());
 		customer.setMobileNumber(request.mobileNumber());
@@ -115,12 +160,30 @@ public class CustomerServiceImpl implements CustomerService{
 	private CustomerDto toDto(Customer customer) {
 		return new CustomerDto(
 				customer.getCustomerId(),
+				customer.getCustomerId(),
 				customer.getCustomerName(),
 				customer.getEmail(),
 				customer.getMobileNumber(),
 				customer.getPanNumber()
 				);
 	}
+
+	
+	
+	@Override
+	@Transactional
+	public CustomerDto getCustomerForLoggedInUser(Long userId) {
+
+	    Customer customer = customerRepository.findById(userId)
+	            .orElseThrow(() -> new ResourceNotFoundException(
+	                    "Customer",
+	                    userId.toString()
+	            ));
+
+	    return toDto(customer);
+	}
+	
+	
 	
 
 }
